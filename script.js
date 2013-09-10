@@ -32388,12 +32388,13 @@ function getDates(crimes) {
   });
 }
 
-function filterData() {
-
+function filterData(crimes, date) {
+  return crimes.filter(function(crime) {
+    return crime["Date"].indexOf(date) != -1; // returns true if date matches
+  });
 }
 
-function appendData() {
-  var crimes = getData();
+function appendDates(crimes) {
   var dates = getDates(crimes);
   var dateSelect = $("#dates");
   $.each(dates, function(i, date) {
@@ -32401,6 +32402,41 @@ function appendData() {
   });
 }
 
+function filterCrimesByWard(crimes) {
+  var wards = crimes.map(function(crime) {
+    return crime["Ward"];
+  }).filter(function(crime, i, a) {
+    return i==a.indexOf(crime);
+  });
+
+  var breakdown = [];
+
+  $.each(wards, function(i, ward) {
+    breakdown.push({"ward" : ward, "count" : crimes.filter(function(crime) {
+      return crime["Ward"] == ward;
+    }).length });
+  });
+
+  return breakdown;
+};
+
+function appendData(crimes, date) {
+  var crimesByDate = filterData(crimes, date);
+  var crimeCounts = filterCrimesByWard(crimesByDate);
+  $("table").remove();
+  $("#main").append(document.createElement("table"));
+  var table = $("#main").find("table");
+  table.append('<tr> <td>Ward</td> <td>Count</td> </tr>');
+  $.each(crimeCounts, function(i, counts) {
+    table.append('<tr><td>' + counts["ward"] + '</td><td>' + counts["count"] + '</td></tr');
+  });
+
+}
+
 $(function() {
-  appendData();
+  var crimes = getData();
+  appendDates(crimes);
+  $("#dates").change(function() {
+    appendData(crimes, $(this).val());
+  });
 });
