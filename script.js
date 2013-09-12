@@ -2,7 +2,7 @@ $(function() {
   var crimes = getData();
   appendDates(crimes);
   $("#dates").change(function() {
-    appendData(crimes, $(this).val());
+    appendWardBreakdown(crimes, $(this).val());
   });
 });
 
@@ -4984,19 +4984,28 @@ function getDates(crimes) {
   });
 }
 
-function filterData(crimes, date) {
+function filterCrimesByDate(crimes, date) {
   return crimes.filter(function(crime) {
     return crime["Date"].indexOf(date) != -1; // returns true if date matches
   });
 }
 
-function filterCrimesByWard(crimes) {
-  var wards = crimes.map(function(crime) {
+function filterCrimesByWard(crimes, ward) {
+  return crimes.filter(function(crime) {
+    return crime["Ward"] == ward;
+  });
+}
+
+function getWards(crimes) {
+  return crimes.map(function(crime) {
     return crime["Ward"];
   }).filter(function(crime, i, a) {
     return i==a.indexOf(crime);
   });
+}
 
+function getWardBreakdown(crimes) {
+  var wards = getWards(crimes);
   var breakdown = [];
 
   $.each(wards, function(i, ward) {
@@ -5006,7 +5015,7 @@ function filterCrimesByWard(crimes) {
   });
 
   return breakdown;
-};
+}
 
 function appendDates(crimes) {
   var dates = getDates(crimes);
@@ -5016,9 +5025,9 @@ function appendDates(crimes) {
   });
 }
 
-function appendData(crimes, date) {
-  var crimesByDate = filterData(crimes, date);
-  var crimeCounts = filterCrimesByWard(crimesByDate).sort(function(a, b) {
+function appendWardBreakdown(crimes, date) {
+  var crimesByDate = filterCrimesByDate(crimes, date);
+  var crimeCounts = getWardBreakdown(crimesByDate).sort(function(a, b) {
     return a["ward"] - b["ward"]; // sort by ward, least to greatest
   });
   $("table").remove();
@@ -5026,7 +5035,20 @@ function appendData(crimes, date) {
   var table = $("#main").find("table");
   table.append('<tr> <td>Ward</td> <td>Count</td> </tr>');
   $.each(crimeCounts, function(i, counts) {
-    table.append('<tr><td>' + counts["ward"] + '</td><td>' + counts["count"] + '</td></tr');
+    table.append('<tr><td class="ward">' + counts["ward"] + '</td><td>' + counts["count"] + '</td></tr');
   });
+  $(".ward").click(function() {
+    appendWardCrimes(filterCrimesByDate(filterCrimesByWard(crimes, $(this).text()), date));
+  });
+}
 
+function appendWardCrimes(crimes) {
+  $("table").remove();
+  $("#main").append(document.createElement("table"));
+  var table = $("#main").find("table");
+  table.append('<tr> <td></td> <td>Primary Type</td> </tr>');
+  $.each(crimes, function(i, crime) {
+    table.append('<tr><td>' + (i+1) + '</td><td' + (crime["Arrest"] ? ' class="arrest"' : '')  + '>' + crime["Primary Type"] + '</td></tr>');
+  });
+  $(".arrest").css("background-color", "#ED7C31");
 }
