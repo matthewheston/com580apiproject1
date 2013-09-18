@@ -8,7 +8,8 @@ if (!Array.prototype.map) {
     return result;
   }
 }
-// Array.prototype.filter imeplemetationcCopyright (c) Mozilla Foundation
+// Array.prototype.filter implementation
+// Copyright (c) Mozilla Foundation
 // http://www.mozilla.org/ This code is available under the terms of the
 // MIT License.
 if (!Array.prototype.filter) {
